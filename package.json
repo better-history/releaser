@@ -4,7 +4,7 @@
   "version": "1.9.1",
   "author": "Roy Kolak <roy.kolak@gmail.com>",
   "scripts": {
-    "build": "rm -fr build && gulp && rm -fr temp"
+    "build": "rm -fr build && gulp && zip -r extension.zip build && rm -fr temp"
   },
   "repository": {
     "type": "git",
