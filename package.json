@@ -3,7 +3,9 @@
   "description": "Better History release packager",
   "version": "1.9.1",
   "author": "Roy Kolak <roy.kolak@gmail.com>",
-  "scripts": {},
+  "scripts": {
+    "build": "rm -fr build && gulp && rm -fr temp"
+  },
   "repository": {
     "type": "git",
     "url": "http://github.com/better-history/releaser.git"
