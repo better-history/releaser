@@ -21,8 +21,8 @@ gulp.task('default', [
     'manifest-rewrite'
   ]);
 
-gulp.task('concat-templates', function(cb){
-  gulp.src(extensionDir + '/templates/*.html')
+gulp.task('concat-templates', function(){
+  return gulp.src(extensionDir + '/templates/*.html')
     .pipe(minifyHtml())
     .pipe((function() {
       return es.map(function(file, callback) {
@@ -33,11 +33,10 @@ gulp.task('concat-templates', function(cb){
     })())
     .pipe(concat('templates.js'))
     .pipe(gulp.dest(extensionDir + '/scripts/views/'));
-    cb();
 });
 
 gulp.task('package:foreground', ['concat-templates'], function () {
-  gulp.src(extensionDir + '/index.html')
+  return gulp.src(extensionDir + '/index.html')
     .pipe(usemin({
       css: [minifyCss(), 'concat'],
       js: []
@@ -51,7 +50,7 @@ gulp.task('package:background', function() {
     return extensionDir + '/' + script;
   });
 
-  gulp.src(scripts)
+  return gulp.src(scripts)
     .pipe(concat('background.js'))
     .pipe(uglify())
     .pipe(gulp.dest(extensionTarget + '/scripts/'));
@@ -61,7 +60,6 @@ gulp.task('manifest-rewrite', function() {
   var manifest = require('./' + extensionDir + '/manifest.json');
   manifest.name = manifest.name.replace(' DEV', '');
   manifest.background.scripts = ['scripts/background.js'];
-
 
   fs.writeFile('build/manifest.json', JSON.stringify(manifest, null, 2), function(err) {
     if(err) {
