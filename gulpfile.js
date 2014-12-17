@@ -4,30 +4,25 @@ var usemin = require('gulp-usemin');
 var uglify = require('gulp-uglify');
 var minifyCss = require('gulp-minify-css');
 var minifyHtml = require('gulp-minify-html');
-
+var fs = require('fs');
+var minimist = require('minimist');
 var path = require("path");
 var es = require("event-stream");
 
-gulp.task('default', ['copy', 'templatify', 'usemin', 'sloppyCopy']);
+var options = minimist(process.argv.slice(2));
 
-gulp.task('copy', function(){
-  // We must ditch the git repo due to issues when usemin runs. It was not picking up a updated file in the git submodule for some reason.
-  gulp.src(['./better-history/**/*'])
-  .pipe(gulp.dest('temp'));
+var extensionDir = options.directory,
+    extensionTarget = options.target;
 
-  gulp.src([
-    './temp/_locales/**/*',
-    './temp/manifest.json',
-    './temp/images/**/*'
-  ], {base: './temp'})
-  .pipe(gulp.dest('build'));
+gulp.task('default', [
+    'concat-templates',
+    'package:foreground',
+    'package:background',
+    'manifest-rewrite'
+  ]);
 
-  gulp.src(['./scripts/config.js'])
-  .pipe(gulp.dest('temp/scripts'));
-});
-
-gulp.task('templatify', function(cb){
-  gulp.src('temp/templates/*.html')
+gulp.task('concat-templates', function(cb){
+  gulp.src(extensionDir + '/templates/*.html')
     .pipe(minifyHtml())
     .pipe((function() {
       return es.map(function(file, callback) {
@@ -37,26 +32,40 @@ gulp.task('templatify', function(cb){
       });
     })())
     .pipe(concat('templates.js'))
-    .pipe(gulp.dest('temp/scripts/views/'));
+    .pipe(gulp.dest(extensionDir + '/scripts/views/'));
     cb();
 });
 
-gulp.task('usemin', ['templatify'], function (cb) {
-  gulp.src('temp/index.html')
+gulp.task('package:foreground', ['concat-templates'], function () {
+  gulp.src(extensionDir + '/index.html')
     .pipe(usemin({
       css: [minifyCss(), 'concat'],
-     js: []
+      js: []
     }))
-    .pipe(gulp.dest('build/'));
-    cb();
+    .pipe(gulp.dest(extensionTarget));
 });
 
-// This is the solution to making sure background scripts are present. Sloppy copy all scripts into the release. Sucks...
-gulp.task('sloppyCopy', ['usemin'], function(){
-  gulp.src(['./temp/scripts/**/*'], {base: './temp'})
-  .pipe(gulp.dest('build'));
+gulp.task('package:background', function() {
+  var manifest = require('./' + extensionDir + '/manifest.json');
+  var scripts = manifest.background.scripts.map(function(script) {
+    return extensionDir + '/' + script;
+  });
 
-  gulp.src(['./temp/bower_components/**/*'], {base: './temp'})
-  .pipe(gulp.dest('build'));
+  gulp.src(scripts)
+    .pipe(concat('background.js'))
+    .pipe(uglify())
+    .pipe(gulp.dest(extensionTarget + '/scripts/'));
 });
 
+gulp.task('manifest-rewrite', function() {
+  var manifest = require('./' + extensionDir + '/manifest.json');
+  manifest.name = manifest.name.replace(' DEV', '');
+  manifest.background.scripts = ['scripts/background.js'];
+
+
+  fs.writeFile('build/manifest.json', JSON.stringify(manifest, null, 2), function(err) {
+    if(err) {
+      console.log(err);
+    }
+  });
+});
