@@ -18,7 +18,8 @@
     "event-stream": "^3.1.7",
     "gulp-concat": "^2.4.2",
     "gulp-minify-html": "^0.1.7",
-    "minimist": "^1.1.0"
+    "minimist": "^1.1.0",
+    "jsesc": "^0.5.0"
   },
   "license": "MIT"
 }

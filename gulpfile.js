@@ -8,6 +8,7 @@ var fs = require('fs');
 var minimist = require('minimist');
 var path = require("path");
 var es = require("event-stream");
+var jsesc = require('jsesc');
 
 var options = minimist(process.argv.slice(2));
 
@@ -23,11 +24,11 @@ gulp.task('default', [
 
 gulp.task('concat-templates', function(){
   return gulp.src(extensionDir + '/templates/*.html')
-    .pipe(minifyHtml())
+    .pipe(minifyHtml({quotes: true}))
     .pipe((function() {
       return es.map(function(file, callback) {
         var name = path.basename(file.path);
-        file.contents = new Buffer("BH.Templates['" + name + "'] = '" + String(file.contents) + "';");
+        file.contents = new Buffer("BH.Templates['" + name + "'] = '" + jsesc(String(file.contents), {quotes: 'double'}) + "';");
         callback(null, file);
       });
     })())
