@@ -3,6 +3,11 @@ releaser
 
 This packages up Better History for a release.
 
+Installing
+-------
+
+Clone this repo and run `npm install`
+
 Making a release
 -------------
 
